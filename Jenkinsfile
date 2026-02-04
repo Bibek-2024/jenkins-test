@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         GIT_REPO = 'https://github.com/Bibek-2024/jenkins-test.git'
-        GIT_CRED = 'github-token'
+        GIT_CRED = 'Github-token'
     }
 
     stages {
