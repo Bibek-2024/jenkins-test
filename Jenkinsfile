@@ -1,39 +1,50 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE_NAME = "my-nginx-website"
-        CONTAINER_NAME = "nginx-website"
-        PORT = "8000"
+    triggers {
+        githubPush()
     }
 
     stages {
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                git branch: 'main', url: 'https://github.com/Bibek-2024/jenkins-test.git'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh "docker build -t ${IMAGE_NAME} ."
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                sh "docker rm -f ${CONTAINER_NAME} || true"
-                sh "docker run -d --name ${CONTAINER_NAME} -p ${PORT}:8000 ${IMAGE_NAME}"
+                echo 'Webhook triggered build'
+                sh '''
+                echo "=============================="
+                echo " Jenkins Auto Build Triggered "
+                echo " Date: $(date)"
+                echo "=============================="
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "Docker container is running on port ${PORT}"
+            emailext(
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+Status: SUCCESS
+Triggered by GitHub Push
+Build URL: ${env.BUILD_URL}
+""",
+                to: "bibekkumarsahu2011@gmail.com"
+            )
         }
+
         failure {
-            echo "Pipeline failed!"
+            emailext(
+                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+Status: FAILED
+Check logs: ${env.BUILD_URL}
+""",
+                to: "bibekkumarsahu2011@gmail.com"
+            )
         }
     }
 }
